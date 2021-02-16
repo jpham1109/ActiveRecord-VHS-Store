@@ -26,13 +26,4 @@ class Rental < ActiveRecord::Base
         Rental.select{|rental| !rental.current}.map(&:vhs)
     end 
 
-    # def self.currently_rented
-    #     #returns a list of all the rentals currently rented
-    #     self.all.select{|rental| rental.current}
-    # end 
-
-    # def self.rented_in_the_past
-    #     #returns a list of all the rentals rented in the past?
-    #     self.all.select{|rental| !rental.current}
-    # end 
 end

@@ -9,9 +9,50 @@ class Vhs < ActiveRecord::Base
         Rental.find_by(vhs_id: self.id, current: false)
     end 
 
+    # def self.available_now
+    #     self.select{|vhs| vhs.rentals.empty?} + Rental.past_rentals_currently_available_vhs
+    #     # binding.pry
+    # end 
+
     def self.available_now
-        self.select{|vhs| vhs.rentals.empty?} + Rental.past_rentals_currently_available_vhs
+        active_tape = Rental.where(current: true).map(&:vhs)
+        remaining_tape = self.all.select{|vhs| !active_tape.include?(vhs)}
+        # binding.pry
     end 
+
+    def self.hot_from_the_press(movie_hash, genre_name)
+        movie = Movie.create(movie_hash)
+        #AR method find_or_create_by https://apidock.com/rails/v4.0.2/ActiveRecord/Relation/find_or_create_by
+        genre = Genre.find_or_create_by(name: genre_name)
+        movie.genres << genre
+        3.times{Vhs.create(movie_id: movie.id)}
+    end 
+
+    def num_of_rentals
+        self.rentals.size
+    end 
+
+    def self.most_used
+        # prints a list of 3 vhs that have been most rented in the format: "serial number: 1111111 | title: 'movie title'
+        #reverse[range] returns the indexes indicated by the range
+        most_used = self.all.sort_by {|vhs| vhs.num_of_rentals}.reverse[0..2]
+        most_used.each {|vhs| puts "serial number: #{vhs.serial_number} | title: #{vhs.movie.title}"}
+    end 
+    
+    def self.count_genres
+        genres_hash = {}
+        self.available_now.map do |vhs|
+            vhs.movie.genres.each do |genre|
+                genres_hash[genre.name].nil? ? genres_hash[genre.name] = 1 : genres_hash[genre.name] += 1
+            end
+        end
+       genres_hash
+    end 
+
+    def self.all_genres
+        genres_hash = self.count_genres
+        genres_hash.keys
+    end
     
     private
 
